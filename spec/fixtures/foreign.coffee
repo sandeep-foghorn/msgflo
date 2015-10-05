@@ -15,17 +15,17 @@ class Switch
       @status = not @status # toggle
       @client.sendTo 'outqueue', @topic, @status, () ->
 
-    @client.connect (err) ->
+    @client.connect (err) =>
       return callback err if err
 
-      @client.createQueue 'outqueue', @topic, (err) ->
+      @client.createQueue 'outqueue', @topic, (err) =>
         return callback err if err
         @timer = setInterval sendStatus, 1000
         return callback null
 
   stop: (callback) ->
     clearInterval @timer if @timer
-    @client.removeQueue 'outqueue', @topic, (err) ->
+    @client.removeQueue 'outqueue', @topic, (err) =>
       return @client.disconnect callback
 
 # Emulate a physical lightbubl
@@ -42,19 +42,59 @@ class LightBulb
       console.log "turning lightbulb #{state}" 
       @client.sendTo 'outqueue', @outtopic, message, () ->
 
-    @client.connect (err) ->
+    @client.connect (err) =>
       return callback err if err
 
-      @client.createQueue 'outqueue', @outtopic, (err) ->
+      @client.createQueue 'outqueue', @outtopic, (err) =>
         return callback err if err
-        @client.createQueue 'inqueue', @intopic, (err) ->
+        @client.createQueue 'inqueue', @intopic, (err) =>
           return callback err if err
 
           @client.subscribeToQueue @intopic, onInput, callback
 
   stop: (callback) ->
     clearInterval @timer if @timer
-    @client.removeQueue 'outqueue', @topic, (err) ->
+    @client.removeQueue 'outqueue', @topic, (err) =>
       return @client.disconnect callback
 
+exports.LightBulb = LightBulb
+exports.ToggleSwitch = Switch
+
+exports.sendDeclarations = (address, callback) ->
+  # TODO: use the foreign participants declaration tool
+  lightbulb =
+    component: 'my/LightBulb'
+    icon: 'file-word-o'
+    role: 'mybubl'
+    label: 'A lightbubl that can be on or off'
+    inports: [
+      id: 'enable'
+      type: 'boolean'
+      description: ''
+    ]
+    outports: [
+      id: 'confirm'
+      type: 'boolean'
+      description: 'ff'
+    ]
+  toggleswitch =
+    component: 'my/ToggleSwitch'
+    role: 'myswitch'
+    icon: 'file-word-o'
+    label: 'A toggle switch which can turn things on or off'
+    inports: []
+    outports: [
+      id: 'state'
+      type: 'boolean'
+      description: 'ff'
+    ]
+
+  client = msgflo.transport.getClient address
+  client.connect (err) ->
+    return callback err if err
+    client.registerParticipant lightbulb, (err) ->
+      return callback err if err
+      client.registerParticipant toggleswitch, (err) ->
+        return callback err if err
+        client.disconnect callback
 

@@ -1,6 +1,7 @@
 
 msgflo = require '../'
 participants = require './fixtures/participants'
+foreignParticipants = require './fixtures/foreign'
 
 async = require 'async'
 chai = require 'chai' unless chai
@@ -117,3 +118,37 @@ describe 'Setup bindings', ->
             chai.expect(err).to.not.exit
 
     it 'should have set up deadlettering'
+
+    describe 'foreign MQTT participants', () ->
+      address = 'mqtt://localhost'
+      toggleswitch = new foreignParticipants.ToggleSwitch address
+      lightbulb = new foreignParticipants.LightBulb address
+
+      before (done) ->
+        toggleswitch.start (err) ->
+          chai.expect(err).to.not.exist
+          lightbulb.start (err) ->
+            chai.expect(err).to.not.exist
+            return done err
+
+      after (done) ->
+        toggleswitch.stop (err) ->
+          chai.expect(err).to.not.exist
+          lightbulb.stop (err) ->
+            chai.expect(err).to.not.exist
+            return done err
+
+      it 'should setup OK', (done) ->
+        options =
+          graphfile: fixturePath 'mqtt-switch.fbp'
+          broker: address
+
+        msgflo.setup.bindings options, (err, b) ->
+          chai.expect(err).to.not.exist
+          done()
+
+        foreignParticipants.sendDeclarations address, (err) ->
+          chai.expect(err).to.not.exist
+
+      it 'switch should be toggling lightbulb on/off'
+
