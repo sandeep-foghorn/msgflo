@@ -148,8 +148,10 @@ describe 'foreign MQTT participants', () ->
       chai.expect(err).to.not.exist
       done()
 
-    foreignParticipants.sendDeclarations address, (err) ->
-      chai.expect(err).to.not.exist
+    setTimeout () ->
+      foreignParticipants.sendDeclarations address, (err) ->
+        chai.expect(err).to.not.exist
+    , 2000
 
   it 'switch should be toggling lightbulb on/off', (done) ->
     observer = msgflo.transport.getClient address

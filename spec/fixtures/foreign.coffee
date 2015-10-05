@@ -65,7 +65,7 @@ exports.sendDeclarations = (address, callback) ->
   lightbulb =
     component: 'my/LightBulb'
     icon: 'file-word-o'
-    role: 'mybubl'
+    role: 'mybulb'
     label: 'A lightbubl that can be on or off'
     inports: [
       id: 'enable'
