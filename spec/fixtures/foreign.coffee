@@ -71,11 +71,13 @@ exports.sendDeclarations = (address, callback) ->
       id: 'enable'
       type: 'boolean'
       description: ''
+      queue: '/mylightbulb/ffo/1/set-on'
     ]
     outports: [
       id: 'confirm'
       type: 'boolean'
       description: 'ff'
+      queue: '/mylightbulb/ffo/1/is-on'
     ]
   toggleswitch =
     component: 'my/ToggleSwitch'
@@ -87,6 +89,7 @@ exports.sendDeclarations = (address, callback) ->
       id: 'state'
       type: 'boolean'
       description: 'ff'
+      queue: '/myswitch/baar/1/status'
     ]
 
   client = msgflo.transport.getClient address

@@ -119,36 +119,47 @@ describe 'Setup bindings', ->
 
     it 'should have set up deadlettering'
 
-    describe 'foreign MQTT participants', () ->
-      address = 'mqtt://localhost'
-      toggleswitch = new foreignParticipants.ToggleSwitch address
-      lightbulb = new foreignParticipants.LightBulb address
+describe 'foreign MQTT participants', () ->
 
-      before (done) ->
-        toggleswitch.start (err) ->
-          chai.expect(err).to.not.exist
-          lightbulb.start (err) ->
-            chai.expect(err).to.not.exist
-            return done err
+  address = 'mqtt://localhost'
+  toggleswitch = new foreignParticipants.ToggleSwitch address
+  lightbulb = new foreignParticipants.LightBulb address
 
-      after (done) ->
-        toggleswitch.stop (err) ->
-          chai.expect(err).to.not.exist
-          lightbulb.stop (err) ->
-            chai.expect(err).to.not.exist
-            return done err
+  before (done) ->
+    toggleswitch.start (err) ->
+      chai.expect(err).to.not.exist
+      lightbulb.start (err) ->
+        chai.expect(err).to.not.exist
+        return done err
 
-      it 'should setup OK', (done) ->
-        options =
-          graphfile: fixturePath 'mqtt-switch.fbp'
-          broker: address
+  after (done) ->
+    toggleswitch.stop (err) ->
+      chai.expect(err).to.not.exist
+      lightbulb.stop (err) ->
+        chai.expect(err).to.not.exist
+        return done err
 
-        msgflo.setup.bindings options, (err, b) ->
-          chai.expect(err).to.not.exist
-          done()
+  it 'should setup OK', (done) ->
+    options =
+      graphfile: fixturePath 'mqtt-switch.fbp'
+      broker: address
 
-        foreignParticipants.sendDeclarations address, (err) ->
-          chai.expect(err).to.not.exist
+    msgflo.setup.bindings options, (err, b) ->
+      chai.expect(err).to.not.exist
+      done()
 
-      it 'switch should be toggling lightbulb on/off'
+    foreignParticipants.sendDeclarations address, (err) ->
+      chai.expect(err).to.not.exist
+
+  it 'switch should be toggling lightbulb on/off', (done) ->
+    observer = msgflo.transport.getClient address
+    outtopic = '/mylightbulb/ffo/1/is-on'
+    handler = (message) =>
+      console.log 'oserver got', message
+      done()
+
+    observer.connect (err) ->
+      chai.expect(err).to.not.exist
+      observer.subscribeToQueue outtopic, handler, (err) ->
+        chai.expect(err).to.not.exist
 
